@@ -30,6 +30,12 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  supabase_flutter: ^2.0.0  # Supabase integration
+  http: ^1.2.0            # For REST API calls
+  provider: ^6.1.0        # State management
+  file_picker: ^10.0.0     # For CV uploads
+  path_provider: ^2.1.0   # File system access
+  flutter_secure_storage: ^9.0.0  # Secure JWT storage
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
