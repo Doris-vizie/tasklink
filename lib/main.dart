@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:tasklink/auth/auth_gate.dart';
 import 'package:tasklink/supabase_config.dart';
+
+import 'screens/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,8 +14,15 @@ class TaskLinkApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: AuthGate(),
+    return MaterialApp(
+      title: 'TaskLink',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+          visualDensity: VisualDensity.adaptivePlatformDensity,
+          fontFamily: 'Roboto',
+        ),
+        home: const SplashScreen(),
+        debugShowCheckedModeBanner: false,
     );
   }
 }

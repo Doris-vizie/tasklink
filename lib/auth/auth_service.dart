@@ -21,6 +21,18 @@ class AuthService {
       );
   }
 
+  // Sign in with Google OAuth
+  Future<void> signInWithGoogle() async {
+    try {
+      await _supabase.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: 'io.supabase.tasklink://login-callback/', // Optional: Custom redirect URI
+      );
+    } catch (e) {
+      throw Exception('Google Sign-In failed: $e');
+    }
+  }
+
   // Sign out the current user
   Future<void> signOut() async {
     await _supabase.auth.signOut();
