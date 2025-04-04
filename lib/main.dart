@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tasklink/auth/auth_gate.dart';
 import 'package:tasklink/supabase_config.dart';
 
 void main() async {
@@ -12,25 +13,8 @@ class TaskLinkApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'TaskLink',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
-      home: const HomeScreen(),
-    );
-  }
-}
-
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('TaskLink')),
-      body: const Center(child: Text('Welcome to TaskLink')),
+    return const MaterialApp(
+      home: AuthGate(),
     );
   }
 }
