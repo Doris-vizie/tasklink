@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:tasklink/auth/auth_service.dart';
+import 'package:tasklink/screens/profile_screen.dart'; // Add this import
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -33,7 +34,13 @@ class _LoginScreenState extends State<LoginScreen> {
           _emailController.text,
           _passwordController.text,
         );
-        // Handle successful login if needed
+        // Navigate to ProfileScreen on successful login
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const ProfileScreen()),
+          );
+        }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -152,7 +159,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: _isLoading ? null : login,
+                    onPressed: login,
                     child: _isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
                         : const Text('LOGIN'),
@@ -167,6 +174,13 @@ class _LoginScreenState extends State<LoginScreen> {
                             setState(() => _isLoading = true);
                             try {
                               await authService.signInWithGoogle();
+                              // Navigate to ProfileScreen on successful Google login
+                              if (mounted) {
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                                );
+                              }
                             } catch (e) {
                               if (mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -189,7 +203,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                            MaterialPageRoute(
+                              builder: (context) => const RegisterScreen()),
                           );
                         },
                         child: const Text('Register'),

@@ -21,7 +21,7 @@ class TaskLinkApp extends StatelessWidget {
           visualDensity: VisualDensity.adaptivePlatformDensity,
           fontFamily: 'Roboto',
         ),
-        home: const SplashScreen(),
+        home: SplashScreen(),
         debugShowCheckedModeBanner: false,
     );
   }

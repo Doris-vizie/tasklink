@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:tasklink/auth/auth_gate.dart';
 import 'dart:async';
 
-import 'login_screen.dart';
+// import 'login_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -25,7 +26,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   void _navigateToLogin() {
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      MaterialPageRoute(builder: (_) => const AuthGate()),
     );
   }
 
