@@ -1,32 +1,52 @@
 import 'package:flutter/material.dart';
-import 'package:tasklink/auth/auth_gate.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 
-// import 'login_screen.dart';
+import '../providers/auth_provider.dart';
+import 'auth/login_screen.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
-
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  _SplashScreenState createState() => _SplashScreenState();
 }
 
 class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _navigateToLoginAfterDelay();
+    _checkAuthStatus();
   }
 
-  Future<void> _navigateToLoginAfterDelay() async {
-    // Simulate loading time for 3 seconds
-    await Future.delayed(const Duration(seconds: 3));
-    _navigateToLogin();
+  Future<void> _checkAuthStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    // Simulate loading time
+    await Future.delayed(Duration(seconds: 3));
+
+    if (token != null) {
+      // Auto login if token exists
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final bool success = await authProvider.autoLogin(token);
+
+      if (success) {
+      //  _navigateToHome();
+        _navigateToLogin();
+      }
+    } else {
+      _navigateToLogin();
+    }
+  }
+
+  void _navigateToHome() {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    authProvider.navigateToRoleBasedHome(context);
   }
 
   void _navigateToLogin() {
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const AuthGate()),
+      MaterialPageRoute(builder: (_) => LoginScreen()),
     );
   }
 
@@ -38,21 +58,21 @@ class _SplashScreenState extends State<SplashScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Colors.blue[300]!, Colors.blue[700]!], // Blue gradient background
+            colors: [Colors.blue[300]!, Colors.blue[700]!],
           ),
         ),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // TL Logo in Circle
+              // Logo
               Container(
                 width: 150,
                 height: 150,
                 decoration: BoxDecoration(
                   color: Colors.white,
                   shape: BoxShape.circle,
-                  boxShadow: const [
+                  boxShadow: [
                     BoxShadow(
                       color: Colors.black26,
                       blurRadius: 10,
@@ -71,25 +91,25 @@ class _SplashScreenState extends State<SplashScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
-              const Text(
+              SizedBox(height: 24),
+              Text(
                 'TaskLink',
-                style: TextStyle(
+                style : TextStyle(
                   fontSize: 36,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
               ),
-              const SizedBox(height: 8),
-              const Text(
+              SizedBox(height: 8),
+              Text(
                 'Connect with opportunities',
                 style: TextStyle(
                   fontSize: 18,
                   color: Colors.white,
                 ),
               ),
-              const SizedBox(height: 48),
-              const CircularProgressIndicator(
+              SizedBox(height: 48),
+              CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
               ),
             ],

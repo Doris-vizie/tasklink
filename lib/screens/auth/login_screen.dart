@@ -1,23 +1,41 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:tasklink/auth/auth_service.dart';
-import 'package:tasklink/screens/profile_screen.dart'; // Add this import
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../../providers/auth_provider.dart';
+import 'forgot_password_screen.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
-
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  _LoginScreenState createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final authService = AuthService();
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
-  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAutoLogin();
+    });
+  }
+
+  Future<void> _checkAutoLogin() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final prefs = await SharedPreferences.getInstance();
+    final savedToken = prefs.getString('auth_token');
+    if (savedToken != null) {
+      final success = await authProvider.autoLogin(savedToken);
+      if (success) {
+        authProvider.navigateToRoleBasedHome(context);
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -26,44 +44,15 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void login() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
-      try {
-        await authService.signInWithEmailPassword(
-          _emailController.text,
-          _passwordController.text,
-        );
-        // Navigate to ProfileScreen on successful login
-        if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const ProfileScreen()),
-          );
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Login failed: $e'),
-            ),
-          );
-        }
-      } finally {
-        if (mounted) {
-          setState(() => _isLoading = false);
-        }
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+
     return Scaffold(
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.all(24),
             child: Form(
               key: _formKey,
               child: Column(
@@ -73,11 +62,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   Container(
                     height: 100,
                     width: 100,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: Colors.blue,
                       shape: BoxShape.circle,
                     ),
-                    child: const Center(
+                    child: Center(
                       child: Text(
                         "TL",
                         style: TextStyle(
@@ -88,8 +77,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  const Text(
+                  SizedBox(height: 24),
+                  Text(
                     'Welcome to TaskLink',
                     textAlign: TextAlign.center,
                     style: TextStyle(
@@ -97,7 +86,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                   Text(
                     'Sign in to continue',
                     textAlign: TextAlign.center,
@@ -106,7 +95,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       color: Colors.grey[600],
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  SizedBox(height: 32),
                   TextFormField(
                     controller: _emailController,
                     decoration: InputDecoration(
@@ -127,12 +116,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   TextFormField(
                     controller: _passwordController,
                     decoration: InputDecoration(
                       labelText: 'Password',
-                      prefixIcon: const Icon(Icons.lock),
+                      prefixIcon: Icon(Icons.lock),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _isPasswordVisible
@@ -157,57 +146,81 @@ class _LoginScreenState extends State<LoginScreen> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: login,
-                    child: _isLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text('LOGIN'),
+                  SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => ForgotPasswordScreen()),
+                        );
+                      },
+                      child: Text('Forgot Password?'),
+                    ),
                   ),
-                  const SizedBox(height: 16),
-                  OutlinedButton.icon(
-                    icon: const FaIcon(FontAwesomeIcons.google, color: Colors.red),
-                    label: const Text('Sign in with Google'),
-                    onPressed: _isLoading
+                  SizedBox(height: 16),
+                  if (authProvider.error != null)
+                    Container(
+                      padding: EdgeInsets.symmetric(vertical: 8),
+                      child: Text(
+                        authProvider.error!,
+                        style: TextStyle(color: Colors.red),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ElevatedButton(
+                    onPressed: authProvider.isLoading
                         ? null
                         : () async {
-                            setState(() => _isLoading = true);
-                            try {
-                              await authService.signInWithGoogle();
-                              // Navigate to ProfileScreen on successful Google login
-                              if (mounted) {
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => const ProfileScreen()),
-                                );
-                              }
-                            } catch (e) {
-                              if (mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Google Sign-In failed: $e')),
-                                );
-                              }
-                            } finally {
-                              if (mounted) {
-                                setState(() => _isLoading = false);
+                            if (_formKey.currentState!.validate()) {
+                              final success = await authProvider.login(
+                                _emailController.text,
+                                _passwordController.text,
+                              );
+                              if (success) {
+                                authProvider.navigateToRoleBasedHome(context);
                               }
                             }
                           },
+                    child: authProvider.isLoading
+                        ? CircularProgressIndicator(color: Colors.white)
+                        : Text('LOGIN'),
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: 16),
+                  OutlinedButton.icon(
+                    icon: FaIcon(FontAwesomeIcons.google, color: Colors.red),
+                    label: Text('Sign in with Google'),
+                    onPressed: authProvider.isLoading
+                        ? null
+                        : () async {
+                            final success =
+                                await authProvider.signInWithGoogle(context);
+                            if (!success) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(authProvider.error ??
+                                      'Google sign-in failed'),
+                                ),
+                              );
+                            }
+                          },
+                  ),
+                  SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text('Don\'t have an account?'),
+                      Text('Don\'t have an account?'),
                       TextButton(
                         onPressed: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const RegisterScreen()),
+                                builder: (_) => RegisterScreen()),
                           );
                         },
-                        child: const Text('Register'),
+                        child: Text('Register'),
                       ),
                     ],
                   ),
